@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enigma Event Admin Panel</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background-color: #f9fafb;
+        color: #374151;
+        line-height: 1.6;
+      }
+
+      .header {
+        background-color: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .header-content {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 4rem;
+      }
+
+      .header-title {
+        display: flex;
+        align-items: center;
+      }
+
+      .header-title h1 {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #111827;
+        margin-left: 0.75rem;
+      }
+
+      .icon {
+        width: 2rem;
+        height: 2rem;
+        fill: #2563eb;
+      }
+
+      .upload-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: #2563eb;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border: none;
+        font-size: 0.875rem;
+      }
+
+      .upload-btn:hover {
+        background-color: #1d4ed8;
+      }
+
+      .upload-btn input {
+        display: none;
+      }
+
+      .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+      }
+
+      .stat-content {
+        display: flex;
+        align-items: center;
+      }
+
+      .stat-icon {
+        padding: 0.75rem;
+        border-radius: 50%;
+        margin-right: 1rem;
+      }
+
+      .stat-icon.blue {
+        background-color: #dbeafe;
+        color: #2563eb;
+      }
+      .stat-icon.yellow {
+        background-color: #fef3c7;
+        color: #d97706;
+      }
+      .stat-icon.green {
+        background-color: #d1fae5;
+        color: #059669;
+      }
+
+      .stat-text p:first-child {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6b7280;
+      }
+
+      .stat-text p:last-child {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      .search-filter {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .search-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      @media (min-width: 768px) {
+        .search-container {
+          flex-direction: row;
+        }
+      }
+
+      .search-input-wrapper {
+        flex: 1;
+        position: relative;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 0.75rem;
+        width: 1rem;
+        height: 1rem;
+        color: #9ca3af;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 0.5rem 0.5rem 0.5rem 2.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .search-input:focus {
+        outline: none;
+        outline: 2px solid #2563eb;
+        border-color: #2563eb;
+      }
+
+      .filter-select {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .filter-select:focus {
+        outline: 2px solid #2563eb;
+        border-color: #2563eb;
+      }
+
+      .tabs-container {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .tab-nav {
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+      }
+
+      .tab-button {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: none;
+        background: none;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        color: #6b7280;
+        transition: color 0.2s;
+      }
+
+      .tab-button:hover {
+        color: #374151;
+      }
+
+      .tab-button.active {
+        color: #2563eb;
+        border-bottom-color: #2563eb;
+      }
+
+      .tab-content {
+        padding: 1.5rem;
+      }
+
+      .participant-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: box-shadow 0.2s;
+      }
+
+      .participant-card:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+      }
+
+      .card-content {
+        flex: 1;
+      }
+
+      .participant-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.5rem;
+      }
+
+      .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 0.75rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+      }
+
+      .detail-item {
+        display: flex;
+      }
+
+      .detail-label {
+        font-weight: 500;
+        min-width: 60px;
+      }
+
+      .remarks {
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+      }
+
+      .remarks .label {
+        font-weight: 500;
+        color: #374151;
+      }
+
+      .remarks .value {
+        margin-left: 0.5rem;
+        color: #6b7280;
+      }
+
+      .card-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        margin-left: 1rem;
+      }
+
+      .timestamp {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+      }
+
+      .payment-badge {
+        background-color: #d1fae5;
+        color: #065f46;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+      }
+
+      .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .btn-register {
+        background-color: #2563eb;
+        color: white;
+      }
+
+      .btn-register:hover {
+        background-color: #1d4ed8;
+      }
+
+      .btn-pending {
+        background-color: #6b7280;
+        color: white;
+      }
+
+      .btn-pending:hover {
+        background-color: #4b5563;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 3rem 0;
+        color: #6b7280;
+      }
+
+      .empty-state .icon {
+        width: 3rem;
+        height: 3rem;
+        margin: 0 auto 1rem;
+        fill: #d1d5db;
+      }
+
+      .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 3rem 0;
+      }
+
+      .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid #e5e7eb;
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 0.75rem;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .name-missing {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+      }
+
+      @media (max-width: 768px) {
+        .card-header {
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .card-actions {
+          width: 100%;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+          margin-left: 0;
+        }
+
+        .details-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="header">
+      <div class="header-content">
+        <div class="header-title">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
+          </svg>
+          <h1>Enigma Event Admin Panel</h1>
+        </div>
+        <label class="upload-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
+            />
+          </svg>
+          Upload Excel
+          <input type="file" accept=".xlsx,.xls" id="fileInput" />
+        </label>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon blue">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+            <div class="stat-text">
+              <p>Total Participants</p>
+              <p id="totalCount">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon yellow">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </div>
+            <div class="stat-text">
+              <p>Pending Registration</p>
+              <p id="pendingCount">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon green">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div class="stat-text">
+              <p>Registered</p>
+              <p id="registeredCount">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search and Filter -->
+      <div class="search-filter">
+        <div class="search-container">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              id="searchInput"
+              class="search-input"
+              placeholder="Search by name, email, phone, college, or branch..."
+            />
+          </div>
+          <select id="filterSelect" class="filter-select">
+            <option value="all">All Fields</option>
+            <option value="branch">Branch</option>
+            <option value="college">College</option>
+            <option value="year">Year</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs-container">
+        <div class="tab-nav">
+          <button class="tab-button active" data-tab="pending">
+            Pending Registration (<span id="pendingTabCount">0</span>)
+          </button>
+          <button class="tab-button" data-tab="registered">
+            Registered (<span id="registeredTabCount">0</span>)
+          </button>
+        </div>
+
+        <div class="tab-content">
+          <div id="loadingState" class="loading hidden">
+            <div class="spinner"></div>
+            <span>Loading participants...</span>
+          </div>
+
+          <div id="pendingTab" class="tab-panel">
+            <div id="pendingList"></div>
+            <div id="pendingEmpty" class="empty-state hidden">
+              <svg class="icon" viewBox="0 0 24 24">
+                <path
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+              <p>No pending participants found</p>
+            </div>
+          </div>
+
+          <div id="registeredTab" class="tab-panel hidden">
+            <div id="registeredList"></div>
+            <div id="registeredEmpty" class="empty-state hidden">
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p>No registered participants found</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+      class EnigmaAdminPanel {
+        constructor() {
+          this.participants = [];
+          this.registeredParticipants = [];
+          this.currentTab = "pending";
+          this.searchTerm = "";
+          this.filterBy = "all";
+
+          this.initializeEventListeners();
+          this.loadSampleData();
+          this.updateUI();
+        }
+
+        initializeEventListeners() {
+          // File upload
+          document
+            .getElementById("fileInput")
+            .addEventListener("change", (e) => this.handleFileUpload(e));
+
+          // Search
+          document
+            .getElementById("searchInput")
+            .addEventListener("input", (e) => {
+              this.searchTerm = e.target.value;
+              this.filterAndDisplay();
+            });
+
+          // Filter
+          document
+            .getElementById("filterSelect")
+            .addEventListener("change", (e) => {
+              this.filterBy = e.target.value;
+              this.filterAndDisplay();
+            });
+
+          // Tabs
+          document.querySelectorAll(".tab-button").forEach((button) => {
+            button.addEventListener("click", (e) => {
+              const tab = e.target.getAttribute("data-tab");
+              this.switchTab(tab);
+            });
+          });
+        }
+
+        loadSampleData() {
+          this.participants = [
+            {
+              id: 1,
+              timestamp: "2025-01-15 10:30:00",
+              emailAddress: "john.doe@example.com",
+              fullName: "John Doe",
+              contactNo: "+91 9876543210",
+              year: "3rd Year",
+              branch: "Computer Science",
+              college: "College of Engineering Adoor",
+              foodPreference: "Vegetarian",
+              paymentScreenshot: "Rs 499/-",
+              remarks: "Early bird registration",
+            },
+            {
+              id: 2,
+              timestamp: "2025-01-15 11:45:00",
+              emailAddress: "jane.smith@example.com",
+              fullName: "Jane Smith",
+              contactNo: "+91 8765432109",
+              year: "2nd Year",
+              branch: "Electronics",
+              college: "College of Engineering Adoor",
+              foodPreference: "Non-Vegetarian",
+              paymentScreenshot: "Rs 499/-",
+              remarks: "Payment verified",
+            },
+            {
+              id: 3,
+              timestamp: "2025-01-15 14:20:00",
+              emailAddress: "alex.johnson@example.com",
+              fullName: "Alex Johnson",
+              contactNo: "+91 7654321098",
+              year: "4th Year",
+              branch: "Mechanical",
+              college: "College of Engineering Adoor",
+              foodPreference: "Vegetarian",
+              paymentScreenshot: "Rs 499/-",
+              remarks: "Late registration",
+            },
+          ];
+        }
+
+        async handleFileUpload(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+
+          // Check if file is Excel format
+          const validTypes = [
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+            "application/vnd.ms-excel", // .xls
+            "text/csv", // .csv
+          ];
+
+          if (
+            !validTypes.includes(file.type) &&
+            !file.name.match(/\.(xlsx|xls|csv)$/i)
+          ) {
+            alert("Please upload a valid Excel file (.xlsx, .xls) or CSV file");
+            return;
+          }
+
+          this.showLoading();
+
+          try {
+            let data;
+            if (file.name.match(/\.csv$/i)) {
+              data = await this.readCSVFile(file);
+            } else {
+              data = await this.readExcelFile(file);
+            }
+
+            console.log("Raw data:", data); // Debug log
+            console.log("Available columns:", Object.keys(data[0] || {})); // Debug log
+
+            this.participants = data
+              .map((row, index) => {
+                // Enhanced function to get column values with better matching
+                const getColumnValue = (possibleNames) => {
+                  // First try exact matches
+                  for (let name of possibleNames) {
+                    if (
+                      row[name] !== undefined &&
+                      row[name] !== null &&
+                      row[name] !== ""
+                    ) {
+                      return row[name].toString().trim();
+                    }
+                  }
+
+                  // If no exact match, try fuzzy matching
+                  const keys = Object.keys(row);
+                  for (let key of keys) {
+                    for (let name of possibleNames) {
+                      // Check if the column key contains any of the possible names (case-insensitive)
+                      if (
+                        key.toLowerCase().includes(name.toLowerCase()) ||
+                        name.toLowerCase().includes(key.toLowerCase())
+                      ) {
+                        if (
+                          row[key] !== undefined &&
+                          row[key] !== null &&
+                          row[key] !== ""
+                        ) {
+                          return row[key].toString().trim();
+                        }
+                      }
+                    }
+                  }
+                  return "";
+                };
+
+                const participant = {
+                  id: Date.now() + index,
+                  timestamp: getColumnValue([
+                    "Timestamp",
+                    "Time",
+                    "Date",
+                    "timestamp",
+                  ]),
+                  emailAddress: getColumnValue([
+                    "Email Address",
+                    "Email",
+                    "email",
+                    "Email ID",
+                  ]),
+                  fullName: getColumnValue([
+                    "Full Name (to be printed in certificate)",
+                    "Full Name",
+                    "Name",
+                    "fullName",
+                    "name",
+                    "Full name",
+                    "Participant Name",
+                    "Full Name (to be printed in certificate )", // Extra space at end
+                  ]),
+                  contactNo: getColumnValue([
+                    "Contact No",
+                    "Contact",
+                    "Phone",
+                    "Mobile",
+                    "contact",
+                    "phone",
+                  ]),
+                  year: getColumnValue([
+                    "Year",
+                    "Academic Year",
+                    "year",
+                    "class",
+                  ]),
+                  branch: getColumnValue([
+                    "Branch",
+                    "Department",
+                    "Stream",
+                    "branch",
+                    "dept",
+                  ]),
+                  college: getColumnValue([
+                    "College",
+                    "Institution",
+                    "college",
+                    "institute",
+                  ]),
+                  foodPreference: getColumnValue([
+                    "Food preference",
+                    "Food Preference",
+                    "Food",
+                    "food",
+                  ]),
+                  paymentScreenshot:
+                    getColumnValue([
+                      "Payment Screenshot",
+                      "Payment",
+                      "Amount",
+                      "Fee",
+                      "payment",
+                    ]) || "Rs 499/-",
+                  remarks: getColumnValue([
+                    "Remarks",
+                    "Notes",
+                    "Comments",
+                    "remarks",
+                    "note",
+                  ]),
+                };
+
+                // Debug log for full name specifically
+                if (index < 3) {
+                  // Log first 3 participants
+                  console.log(`Participant ${index + 1}:`, {
+                    fullName: participant.fullName,
+                    allKeys: Object.keys(row),
+                    fullNameFound: Object.keys(row).some(
+                      (key) =>
+                        key.toLowerCase().includes("full name") ||
+                        key.toLowerCase().includes("name")
+                    ),
+                  });
+                }
+
+                return participant;
+              })
+              .filter(
+                (participant) =>
+                  participant.fullName || participant.emailAddress
+              ); // Filter out empty rows
+
+            if (this.participants.length === 0) {
+              alert(
+                "No valid participant data found in the file. Please check the file format and column headers."
+              );
+              return;
+            }
+
+            // Clear registered participants when new data is loaded
+            this.registeredParticipants = [];
+
+            // Debug: Log first few participants to check data extraction
+            console.log(
+              "Processed participants:",
+              this.participants.slice(0, 3)
+            );
+
+            alert(
+              `Successfully loaded ${this.participants.length} participants!`
+            );
+            this.updateUI();
+          } catch (error) {
+            console.error("Detailed error:", error);
+            alert(
+              `Error reading file: ${error.message}. Please ensure the file is not corrupted and contains the expected columns.`
+            );
+          } finally {
+            this.hideLoading();
+          }
+        }
+
+        readCSVFile(file) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              try {
+                const text = e.target.result;
+                const lines = text.split("\n").filter((line) => line.trim());
+                if (lines.length < 2) {
+                  reject(
+                    new Error(
+                      "CSV file must contain at least a header row and one data row"
+                    )
+                  );
+                  return;
+                }
+
+                const headers = lines[0]
+                  .split(",")
+                  .map((h) => h.trim().replace(/"/g, ""));
+
+                const data = lines
+                  .slice(1)
+                  .map((line) => {
+                    const values = this.parseCSVLine(line);
+                    const row = {};
+                    headers.forEach((header, index) => {
+                      row[header] = values[index] || "";
+                    });
+                    return row;
+                  })
+                  .filter((row) =>
+                    Object.values(row).some(
+                      (value) => value && value.trim() !== ""
+                    )
+                  );
+
+                resolve(data);
+              } catch (error) {
+                reject(new Error("CSV parsing failed: " + error.message));
+              }
+            };
+            reader.onerror = () => reject(new Error("File reading failed"));
+            reader.readAsText(file, "UTF-8");
+          });
+        }
+
+        parseCSVLine(line) {
+          const values = [];
+          let current = "";
+          let inQuotes = false;
+
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === "," && !inQuotes) {
+              values.push(current.trim().replace(/"/g, ""));
+              current = "";
+            } else {
+              current += char;
+            }
+          }
+          values.push(current.trim().replace(/"/g, ""));
+          return values;
+        }
+
+        readExcelFile(file) {
+          return new Promise((resolve, reject) => {
+            // Check if XLSX library is loaded
+            if (typeof XLSX === "undefined") {
+              reject(
+                new Error(
+                  "Excel library not loaded. Please refresh the page and try again."
+                )
+              );
+              return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {
+                  type: "array",
+                  cellText: false,
+                  cellDates: true,
+                });
+
+                if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                  reject(new Error("No sheets found in the Excel file"));
+                  return;
+                }
+
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+
+                if (!worksheet) {
+                  reject(new Error("Could not read the worksheet"));
+                  return;
+                }
+
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                  header: 1,
+                  defval: "",
+                  blankrows: false,
+                  raw: false, // Convert everything to string
+                });
+
+                if (jsonData.length < 2) {
+                  reject(
+                    new Error(
+                      "File must contain at least a header row and one data row"
+                    )
+                  );
+                  return;
+                }
+
+                // Convert array format to object format
+                const headers = jsonData[0].map((h) =>
+                  h ? h.toString().trim() : ""
+                );
+                const rows = jsonData
+                  .slice(1)
+                  .map((row) => {
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                      const cellValue = row[index];
+                      obj[header] =
+                        cellValue !== undefined && cellValue !== null
+                          ? cellValue.toString().trim()
+                          : "";
+                    });
+                    return obj;
+                  })
+                  .filter((row) =>
+                    Object.values(row).some(
+                      (value) => value && value.trim() !== ""
+                    )
+                  );
+
+                resolve(rows);
+              } catch (error) {
+                reject(new Error("Excel parsing failed: " + error.message));
+              }
+            };
+            reader.onerror = () => reject(new Error("File reading failed"));
+            reader.readAsArrayBuffer(file);
+          });
+        }
+
+        markAsRegistered(participantId) {
+          const participantIndex = this.participants.findIndex(
+            (p) => p.id === participantId
+          );
+          if (participantIndex !== -1) {
+            const participant = this.participants.splice(
+              participantIndex,
+              1
+            )[0];
+            this.registeredParticipants.push(participant);
+            this.updateUI();
+
+            // Show success message
+            this.showNotification(
+              "Participant marked as registered successfully!",
+              "success"
+            );
+          }
+        }
+
+        moveBackToPending(participantId) {
+          const participantIndex = this.registeredParticipants.findIndex(
+            (p) => p.id === participantId
+          );
+          if (participantIndex !== -1) {
+            const participant = this.registeredParticipants.splice(
+              participantIndex,
+              1
+            )[0];
+            this.participants.push(participant);
+            this.updateUI();
+
+            // Show success message
+            this.showNotification(
+              "Participant moved back to pending successfully!",
+              "info"
+            );
+          }
+        }
+
+        showNotification(message, type = "info") {
+          // Simple notification system
+          const notification = document.createElement("div");
+          notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: ${type === "success" ? "#10b981" : "#3b82f6"};
+                    color: white;
+                    padding: 1rem 1.5rem;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    z-index: 1000;
+                    transform: translateX(400px);
+                    transition: transform 0.3s ease;
+                `;
+          notification.textContent = message;
+          document.body.appendChild(notification);
+
+          // Animate in
+          setTimeout(() => {
+            notification.style.transform = "translateX(0)";
+          }, 100);
+
+          // Remove after 3 seconds
+          setTimeout(() => {
+            notification.style.transform = "translateX(400px)";
+            setTimeout(() => {
+              document.body.removeChild(notification);
+            }, 300);
+          }, 3000);
+        }
+
+        filterParticipants(list) {
+          return list.filter((participant) => {
+            const searchFields = [
+              participant.fullName,
+              participant.emailAddress,
+              participant.contactNo,
+              participant.college,
+              participant.branch,
+              participant.year,
+            ].map((field) => (field || "").toLowerCase());
+
+            const matchesSearch =
+              this.searchTerm === "" ||
+              searchFields.some((field) =>
+                field.includes(this.searchTerm.toLowerCase())
+              );
+
+            return matchesSearch;
+          });
+        }
+
+        createParticipantCard(participant, showRegisterButton = true) {
+          // Fallback name if fullName is empty
+          const displayName = participant.fullName || "Unknown Participant";
+          const nameMissing = !participant.fullName;
+
+          return `
+                    <div class="participant-card">
+                        <div class="card-header">
+                            <div class="card-content">
+                                <h3 class="participant-name">${displayName}</h3>
+                                ${
+                                  nameMissing
+                                    ? '<p class="name-missing">(Name field missing from uploaded data)</p>'
+                                    : ""
+                                }
+                                <div class="details-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Email:</span> ${
+                                          participant.emailAddress || "N/A"
+                                        }
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Contact:</span> ${
+                                          participant.contactNo || "N/A"
+                                        }
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Year:</span> ${
+                                          participant.year || "N/A"
+                                        }
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Branch:</span> ${
+                                          participant.branch || "N/A"
+                                        }
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">College:</span> ${
+                                          participant.college || "N/A"
+                                        }
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Food:</span> ${
+                                          participant.foodPreference || "N/A"
+                                        }
+                                    </div>
+                                </div>
+                                ${
+                                  participant.remarks
+                                    ? `
+                                    <div class="remarks">
+                                        <span class="label">Remarks:</span>
+                                        <span class="value">${participant.remarks}</span>
+                                    </div>
+                                `
+                                    : ""
+                                }
+                            </div>
+                            <div class="card-actions">
+                                <div class="timestamp">${
+                                  participant.timestamp || "N/A"
+                                }</div>
+                                <div class="payment-badge">${
+                                  participant.paymentScreenshot || "Rs 499/-"
+                                }</div>
+                                ${
+                                  showRegisterButton
+                                    ? `
+                                    <button class="action-btn btn-register" onclick="adminPanel.markAsRegistered(${participant.id})">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        Mark Registered
+                                    </button>
+                                `
+                                    : `
+                                    <button class="action-btn btn-pending" onclick="adminPanel.moveBackToPending(${participant.id})">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                        Move to Pending
+                                    </button>
+                                `
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }
+
+        switchTab(tab) {
+          this.currentTab = tab;
+
+          // Update tab buttons
+          document.querySelectorAll(".tab-button").forEach((button) => {
+            button.classList.remove("active");
+            if (button.getAttribute("data-tab") === tab) {
+              button.classList.add("active");
+            }
+          });
+
+          // Update tab panels
+          document.querySelectorAll(".tab-panel").forEach((panel) => {
+            panel.classList.add("hidden");
+          });
+          document.getElementById(tab + "Tab").classList.remove("hidden");
+
+          this.filterAndDisplay();
+        }
+
+        filterAndDisplay() {
+          const pendingFiltered = this.filterParticipants(this.participants);
+          const registeredFiltered = this.filterParticipants(
+            this.registeredParticipants
+          );
+
+          // Update pending tab
+          const pendingList = document.getElementById("pendingList");
+          const pendingEmpty = document.getElementById("pendingEmpty");
+
+          if (pendingFiltered.length === 0) {
+            pendingList.innerHTML = "";
+            pendingEmpty.classList.remove("hidden");
+          } else {
+            pendingEmpty.classList.add("hidden");
+            pendingList.innerHTML = pendingFiltered
+              .map((p) => this.createParticipantCard(p, true))
+              .join("");
+          }
+
+          // Update registered tab
+          const registeredList = document.getElementById("registeredList");
+          const registeredEmpty = document.getElementById("registeredEmpty");
+
+          if (registeredFiltered.length === 0) {
+            registeredList.innerHTML = "";
+            registeredEmpty.classList.remove("hidden");
+          } else {
+            registeredEmpty.classList.add("hidden");
+            registeredList.innerHTML = registeredFiltered
+              .map((p) => this.createParticipantCard(p, false))
+              .join("");
+          }
+        }
+
+        updateUI() {
+          // Update stats
+          document.getElementById("totalCount").textContent =
+            this.participants.length + this.registeredParticipants.length;
+          document.getElementById("pendingCount").textContent =
+            this.participants.length;
+          document.getElementById("registeredCount").textContent =
+            this.registeredParticipants.length;
+
+          // Update tab counts
+          document.getElementById("pendingTabCount").textContent =
+            this.participants.length;
+          document.getElementById("registeredTabCount").textContent =
+            this.registeredParticipants.length;
+
+          // Update displays
+          this.filterAndDisplay();
+        }
+
+        showLoading() {
+          document.getElementById("loadingState").classList.remove("hidden");
+          document.querySelectorAll(".tab-panel").forEach((panel) => {
+            panel.classList.add("hidden");
+          });
+        }
+
+        hideLoading() {
+          document.getElementById("loadingState").classList.add("hidden");
+          document
+            .getElementById(this.currentTab + "Tab")
+            .classList.remove("hidden");
+        }
+      }
+
+      // Initialize the admin panel
+      const adminPanel = new EnigmaAdminPanel();
+    </script>
+  </body>
+</html>
