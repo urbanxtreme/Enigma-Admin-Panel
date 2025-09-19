@@ -612,50 +612,6 @@
           });
         }
 
-        loadSampleData() {
-          this.participants = [
-            {
-              id: 1,
-              timestamp: "2025-01-15 10:30:00",
-              emailAddress: "john.doe@example.com",
-              fullName: "John Doe",
-              contactNo: "+91 9876543210",
-              year: "3rd Year",
-              branch: "Computer Science",
-              college: "College of Engineering Adoor",
-              foodPreference: "Vegetarian",
-              paymentScreenshot: "Rs 499/-",
-              remarks: "Early bird registration",
-            },
-            {
-              id: 2,
-              timestamp: "2025-01-15 11:45:00",
-              emailAddress: "jane.smith@example.com",
-              fullName: "Jane Smith",
-              contactNo: "+91 8765432109",
-              year: "2nd Year",
-              branch: "Electronics",
-              college: "College of Engineering Adoor",
-              foodPreference: "Non-Vegetarian",
-              paymentScreenshot: "Rs 499/-",
-              remarks: "Payment verified",
-            },
-            {
-              id: 3,
-              timestamp: "2025-01-15 14:20:00",
-              emailAddress: "alex.johnson@example.com",
-              fullName: "Alex Johnson",
-              contactNo: "+91 7654321098",
-              year: "4th Year",
-              branch: "Mechanical",
-              college: "College of Engineering Adoor",
-              foodPreference: "Vegetarian",
-              paymentScreenshot: "Rs 499/-",
-              remarks: "Late registration",
-            },
-          ];
-        }
-
         async handleFileUpload(event) {
           const file = event.target.files[0];
           if (!file) return;
