@@ -201,6 +201,13 @@
       .tab-nav {
         border-bottom: 1px solid #e5e7eb;
         display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-right: 1rem;
+      }
+
+      .tab-buttons {
+        display: flex;
       }
 
       .tab-button {
@@ -222,6 +229,29 @@
       .tab-button.active {
         color: #2563eb;
         border-bottom-color: #2563eb;
+      }
+
+      .export-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: #059669;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: background-color 0.2s;
+      }
+
+      .export-btn:hover {
+        background-color: #047857;
+      }
+
+      .export-btn:disabled {
+        background-color: #9ca3af;
+        cursor: not-allowed;
       }
 
       .tab-content {
@@ -410,6 +440,14 @@
         background: #3b82f6;
       }
 
+      .notification.success {
+        background: #10b981;
+      }
+
+      .notification.error {
+        background: #ef4444;
+      }
+
       .notification.show {
         right: 20px;
       }
@@ -431,11 +469,21 @@
         .details-grid {
           grid-template-columns: 1fr;
         }
+
+        .tab-nav {
+          flex-direction: column;
+          gap: 1rem;
+          align-items: flex-start;
+          padding: 1rem;
+        }
+
+        .tab-buttons {
+          width: 100%;
+        }
       }
     </style>
   </head>
   <body>
-    <!-- Header -->
     <div class="header">
       <div class="header-content">
         <div class="header-title">
@@ -457,9 +505,7 @@
         </label>
       </div>
     </div>
-
     <div class="container">
-      <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-content">
@@ -481,7 +527,6 @@
             </div>
           </div>
         </div>
-
         <div class="stat-card">
           <div class="stat-content">
             <div class="stat-icon yellow">
@@ -502,7 +547,6 @@
             </div>
           </div>
         </div>
-
         <div class="stat-card">
           <div class="stat-content">
             <div class="stat-icon green">
@@ -522,8 +566,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Search and Filter -->
       <div class="search-filter">
         <div class="search-container">
           <div class="search-input-wrapper">
@@ -545,24 +587,35 @@
           </select>
         </div>
       </div>
-
-      <!-- Tabs -->
       <div class="tabs-container">
         <div class="tab-nav">
-          <button class="tab-button active" data-tab="pending">
-            Pending Registration (<span id="pendingTabCount">0</span>)
-          </button>
-          <button class="tab-button" data-tab="registered">
-            Registered (<span id="registeredTabCount">0</span>)
+          <div class="tab-buttons">
+            <button class="tab-button active" data-tab="pending">
+              Pending Registration (<span id="pendingTabCount">0</span>)
+            </button>
+            <button class="tab-button" data-tab="registered">
+              Registered (<span id="registeredTabCount">0</span>)
+            </button>
+          </div>
+          <button
+            class="export-btn"
+            id="exportBtn"
+            title="Export Registered Participants"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"
+              />
+              <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+            </svg>
+            Export Registered
           </button>
         </div>
-
         <div class="tab-content">
           <div id="loadingState" class="loading hidden">
             <div class="spinner"></div>
             <span>Loading participants...</span>
           </div>
-
           <div id="pendingTab" class="tab-panel">
             <div id="pendingList"></div>
             <div id="pendingEmpty" class="empty-state hidden">
@@ -574,7 +627,6 @@
               <p>No pending participants found</p>
             </div>
           </div>
-
           <div id="registeredTab" class="tab-panel hidden">
             <div id="registeredList"></div>
             <div id="registeredEmpty" class="empty-state hidden">
@@ -602,47 +654,39 @@
           this.loadSampleData();
           this.updateUI();
         }
-
         initializeEventListeners() {
-          // File upload
           document
             .getElementById("fileInput")
             .addEventListener("change", (e) => this.handleFileUpload(e));
-
-          // Search
           document
             .getElementById("searchInput")
             .addEventListener("input", (e) => {
               this.searchTerm = e.target.value;
               this.filterAndDisplay();
             });
-
-          // Filter
           document
             .getElementById("filterSelect")
             .addEventListener("change", (e) => {
               this.filterBy = e.target.value;
               this.filterAndDisplay();
             });
-
-          // Tabs
+          document
+            .getElementById("exportBtn")
+            .addEventListener("click", () =>
+              this.exportRegisteredParticipants()
+            );
           document.querySelectorAll(".tab-button").forEach((button) => {
             button.addEventListener("click", (e) => {
               const tab = e.target.getAttribute("data-tab");
               this.switchTab(tab);
             });
           });
-
-          // Action buttons event delegation
           this.setupActionButtonListeners();
         }
-
         setupActionButtonListeners() {
-          // Event delegation for action buttons
           document.addEventListener("click", (e) => {
             const registerBtn = e.target.closest(".register-btn");
             const pendingBtn = e.target.closest(".pending-btn");
-
             if (registerBtn) {
               e.preventDefault();
               const participantId = parseInt(
@@ -658,18 +702,77 @@
             }
           });
         }
-
+        exportRegisteredParticipants() {
+          if (this.registeredParticipants.length === 0) {
+            this.showNotification(
+              "No registered participants to export!",
+              "error"
+            );
+            return;
+          }
+          try {
+            const exportData = this.registeredParticipants.map(
+              (participant, index) => ({
+                "S.No": index + 1,
+                "Full Name": participant.fullName || "N/A",
+                "Email Address": participant.emailAddress || "N/A",
+                "Contact No": participant.contactNo || "N/A",
+                Year: participant.year || "N/A",
+                Branch: participant.branch || "N/A",
+                College: participant.college || "N/A",
+                "Food Preference": participant.foodPreference || "N/A",
+                "Payment Screenshot": participant.paymentScreenshot || "N/A",
+                Remarks: participant.remarks || "",
+                Timestamp: participant.timestamp || "N/A",
+              })
+            );
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const colWidths = [
+              { wch: 8 },
+              { wch: 25 },
+              { wch: 30 },
+              { wch: 15 },
+              { wch: 10 },
+              { wch: 20 },
+              { wch: 30 },
+              { wch: 15 },
+              { wch: 15 },
+              { wch: 30 },
+              { wch: 20 },
+            ];
+            ws["!cols"] = colWidths;
+            XLSX.utils.book_append_sheet(wb, ws, "Registered Participants");
+            const now = new Date();
+            const dateStr =
+              now.getFullYear() +
+              String(now.getMonth() + 1).padStart(2, "0") +
+              String(now.getDate()).padStart(2, "0");
+            const timeStr =
+              String(now.getHours()).padStart(2, "0") +
+              String(now.getMinutes()).padStart(2, "0");
+            const filename = `Enigma_Registered_Participants_${dateStr}_${timeStr}.xlsx`;
+            XLSX.writeFile(wb, filename);
+            this.showNotification(
+              `Successfully exported ${this.registeredParticipants.length} registered participants!`,
+              "success"
+            );
+          } catch (error) {
+            console.error("Export error:", error);
+            this.showNotification(
+              "Error exporting data. Please try again.",
+              "error"
+            );
+          }
+        }
         async handleFileUpload(event) {
           const file = event.target.files[0];
           if (!file) return;
-
-          // Check if file is Excel format
           const validTypes = [
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-            "application/vnd.ms-excel", // .xls
-            "text/csv", // .csv
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-excel",
+            "text/csv",
           ];
-
           if (
             !validTypes.includes(file.type) &&
             !file.name.match(/\.(xlsx|xls|csv)$/i)
@@ -677,9 +780,7 @@
             alert("Please upload a valid Excel file (.xlsx, .xls) or CSV file");
             return;
           }
-
           this.showLoading();
-
           try {
             let data;
             if (file.name.match(/\.csv$/i)) {
@@ -687,15 +788,11 @@
             } else {
               data = await this.readExcelFile(file);
             }
-
-            console.log("Raw data:", data); // Debug log
-            console.log("Available columns:", Object.keys(data[0] || {})); // Debug log
-
+            console.log("Raw data:", data);
+            console.log("Available columns:", Object.keys(data[0] || {}));
             this.participants = data
               .map((row, index) => {
-                // Enhanced function to get column values with better matching
                 const getColumnValue = (possibleNames) => {
-                  // First try exact matches
                   for (let name of possibleNames) {
                     if (
                       row[name] !== undefined &&
@@ -705,12 +802,9 @@
                       return row[name].toString().trim();
                     }
                   }
-
-                  // If no exact match, try fuzzy matching
                   const keys = Object.keys(row);
                   for (let key of keys) {
                     for (let name of possibleNames) {
-                      // Check if the column key contains any of the possible names (case-insensitive)
                       if (
                         key.toLowerCase().includes(name.toLowerCase()) ||
                         name.toLowerCase().includes(key.toLowerCase())
@@ -727,7 +821,6 @@
                   }
                   return "";
                 };
-
                 const participant = {
                   id: Date.now() + index,
                   timestamp: getColumnValue([
@@ -750,7 +843,7 @@
                     "name",
                     "Full name",
                     "Participant Name",
-                    "Full Name (to be printed in certificate )", // Extra space at end
+                    "Full Name (to be printed in certificate )",
                   ]),
                   contactNo: getColumnValue([
                     "Contact No",
@@ -801,10 +894,7 @@
                     "note",
                   ]),
                 };
-
-                // Debug log for full name specifically
                 if (index < 3) {
-                  // Log first 3 participants
                   console.log(`Participant ${index + 1}:`, {
                     fullName: participant.fullName,
                     allKeys: Object.keys(row),
@@ -815,30 +905,23 @@
                     ),
                   });
                 }
-
                 return participant;
               })
               .filter(
                 (participant) =>
                   participant.fullName || participant.emailAddress
-              ); // Filter out empty rows
-
+              );
             if (this.participants.length === 0) {
               alert(
                 "No valid participant data found in the file. Please check the file format and column headers."
               );
               return;
             }
-
-            // Clear registered participants when new data is loaded
             this.registeredParticipants = [];
-
-            // Debug: Log first few participants to check data extraction
             console.log(
               "Processed participants:",
               this.participants.slice(0, 3)
             );
-
             alert(
               `Successfully loaded ${this.participants.length} participants!`
             );
@@ -852,7 +935,6 @@
             this.hideLoading();
           }
         }
-
         readCSVFile(file) {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -868,11 +950,9 @@
                   );
                   return;
                 }
-
                 const headers = lines[0]
                   .split(",")
                   .map((h) => h.trim().replace(/"/g, ""));
-
                 const data = lines
                   .slice(1)
                   .map((line) => {
@@ -888,7 +968,6 @@
                       (value) => value && value.trim() !== ""
                     )
                   );
-
                 resolve(data);
               } catch (error) {
                 reject(new Error("CSV parsing failed: " + error.message));
@@ -898,12 +977,10 @@
             reader.readAsText(file, "UTF-8");
           });
         }
-
         parseCSVLine(line) {
           const values = [];
           let current = "";
           let inQuotes = false;
-
           for (let i = 0; i < line.length; i++) {
             const char = line[i];
             if (char === '"') {
@@ -918,10 +995,8 @@
           values.push(current.trim().replace(/"/g, ""));
           return values;
         }
-
         readExcelFile(file) {
           return new Promise((resolve, reject) => {
-            // Check if XLSX library is loaded
             if (typeof XLSX === "undefined") {
               reject(
                 new Error(
@@ -930,7 +1005,6 @@
               );
               return;
             }
-
             const reader = new FileReader();
             reader.onload = (e) => {
               try {
@@ -945,22 +1019,18 @@
                   reject(new Error("No sheets found in the Excel file"));
                   return;
                 }
-
                 const sheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[sheetName];
-
                 if (!worksheet) {
                   reject(new Error("Could not read the worksheet"));
                   return;
                 }
-
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, {
                   header: 1,
                   defval: "",
                   blankrows: false,
-                  raw: false, // Convert everything to string
+                  raw: false,
                 });
-
                 if (jsonData.length < 2) {
                   reject(
                     new Error(
@@ -969,8 +1039,6 @@
                   );
                   return;
                 }
-
-                // Convert array format to object format
                 const headers = jsonData[0].map((h) =>
                   h ? h.toString().trim() : ""
                 );
@@ -992,7 +1060,6 @@
                       (value) => value && value.trim() !== ""
                     )
                   );
-
                 resolve(rows);
               } catch (error) {
                 reject(new Error("Excel parsing failed: " + error.message));
@@ -1002,7 +1069,6 @@
             reader.readAsArrayBuffer(file);
           });
         }
-
         markAsRegistered(participantId) {
           const participantIndex = this.participants.findIndex(
             (p) => p.id === participantId
@@ -1014,8 +1080,6 @@
             )[0];
             this.registeredParticipants.push(participant);
             this.updateUI();
-
-            // Show success message
             this.showNotification(
               "Participant marked as registered successfully!",
               "success"
@@ -1024,7 +1088,6 @@
             this.showNotification("Participant not found!", "error");
           }
         }
-
         moveBackToPending(participantId) {
           const participantIndex = this.registeredParticipants.findIndex(
             (p) => p.id === participantId
@@ -1036,8 +1099,6 @@
             )[0];
             this.participants.push(participant);
             this.updateUI();
-
-            // Show success message
             this.showNotification(
               "Participant moved back to pending successfully!",
               "info"
@@ -1046,9 +1107,7 @@
             this.showNotification("Participant not found!", "error");
           }
         }
-
         showNotification(message, type = "info") {
-          // Remove existing notifications
           const existingNotifications =
             document.querySelectorAll(".notification");
           existingNotifications.forEach((notification) => {
@@ -1057,19 +1116,13 @@
               notification.remove();
             }, 300);
           });
-
-          // Create new notification
           const notification = document.createElement("div");
           notification.className = `notification ${type}`;
           notification.textContent = message;
           document.body.appendChild(notification);
-
-          // Animate in
           setTimeout(() => {
             notification.classList.add("show");
           }, 100);
-
-          // Remove after 3 seconds
           setTimeout(() => {
             notification.classList.remove("show");
             setTimeout(() => {
@@ -1079,39 +1132,9 @@
             }, 300);
           }, 3000);
         }
-
         loadSampleData() {
-          // Sample data for demonstration
-          this.participants = [
-            {
-              id: 1,
-              timestamp: "2024-01-15 10:30",
-              emailAddress: "john@example.com",
-              fullName: "John Doe",
-              contactNo: "+91 9876543210",
-              year: "3rd Year",
-              branch: "Computer Science",
-              college: "MIT College",
-              foodPreference: "Vegetarian",
-              paymentScreenshot: "Rs 499/-",
-              remarks: "Early bird registration",
-            },
-            {
-              id: 2,
-              timestamp: "2024-01-15 11:15",
-              emailAddress: "jane@example.com",
-              fullName: "Jane Smith",
-              contactNo: "+91 9876543211",
-              year: "2nd Year",
-              branch: "Electronics",
-              college: "VIT University",
-              foodPreference: "Non-Vegetarian",
-              paymentScreenshot: "Rs 499/-",
-              remarks: "",
-            },
-          ];
+          this.participants = [];
         }
-
         filterParticipants(list) {
           return list.filter((participant) => {
             const searchFields = [
@@ -1134,10 +1157,8 @@
         }
 
         createParticipantCard(participant, showRegisterButton = true) {
-          // Fallback name if fullName is empty
           const displayName = participant.fullName || "Unknown Participant";
           const nameMissing = !participant.fullName;
-
           return `
             <div class="participant-card" data-participant-id="${
               participant.id
@@ -1228,43 +1249,39 @@
             </div>
           `;
         }
-
         escapeHtml(text) {
           const div = document.createElement("div");
           div.textContent = text;
           return div.innerHTML;
         }
-
         switchTab(tab) {
           this.currentTab = tab;
-
-          // Update tab buttons
           document.querySelectorAll(".tab-button").forEach((button) => {
             button.classList.remove("active");
             if (button.getAttribute("data-tab") === tab) {
               button.classList.add("active");
             }
           });
-
-          // Update tab panels
           document.querySelectorAll(".tab-panel").forEach((panel) => {
             panel.classList.add("hidden");
           });
           document.getElementById(tab + "Tab").classList.remove("hidden");
-
+          const exportBtn = document.getElementById("exportBtn");
+          if (tab === "registered") {
+            exportBtn.style.visibility = "visible";
+            exportBtn.disabled = this.registeredParticipants.length === 0;
+          } else {
+            exportBtn.style.visibility = "hidden";
+          }
           this.filterAndDisplay();
         }
-
         filterAndDisplay() {
           const pendingFiltered = this.filterParticipants(this.participants);
           const registeredFiltered = this.filterParticipants(
             this.registeredParticipants
           );
-
-          // Update pending tab
           const pendingList = document.getElementById("pendingList");
           const pendingEmpty = document.getElementById("pendingEmpty");
-
           if (pendingFiltered.length === 0) {
             pendingList.innerHTML = "";
             pendingEmpty.classList.remove("hidden");
@@ -1274,11 +1291,8 @@
               .map((p) => this.createParticipantCard(p, true))
               .join("");
           }
-
-          // Update registered tab
           const registeredList = document.getElementById("registeredList");
           const registeredEmpty = document.getElementById("registeredEmpty");
-
           if (registeredFiltered.length === 0) {
             registeredList.innerHTML = "";
             registeredEmpty.classList.remove("hidden");
@@ -1289,33 +1303,32 @@
               .join("");
           }
         }
-
         updateUI() {
-          // Update stats
           document.getElementById("totalCount").textContent =
             this.participants.length + this.registeredParticipants.length;
           document.getElementById("pendingCount").textContent =
             this.participants.length;
           document.getElementById("registeredCount").textContent =
             this.registeredParticipants.length;
-
-          // Update tab counts
           document.getElementById("pendingTabCount").textContent =
             this.participants.length;
           document.getElementById("registeredTabCount").textContent =
             this.registeredParticipants.length;
-
-          // Update displays
+          const exportBtn = document.getElementById("exportBtn");
+          exportBtn.disabled = this.registeredParticipants.length === 0;
+          if (this.currentTab === "registered") {
+            exportBtn.style.visibility = "visible";
+          } else {
+            exportBtn.style.visibility = "hidden";
+          }
           this.filterAndDisplay();
         }
-
         showLoading() {
           document.getElementById("loadingState").classList.remove("hidden");
           document.querySelectorAll(".tab-panel").forEach((panel) => {
             panel.classList.add("hidden");
           });
         }
-
         hideLoading() {
           document.getElementById("loadingState").classList.add("hidden");
           document
@@ -1323,8 +1336,6 @@
             .classList.remove("hidden");
         }
       }
-
-      // Initialize the admin panel
       const adminPanel = new EnigmaAdminPanel();
     </script>
   </body>
