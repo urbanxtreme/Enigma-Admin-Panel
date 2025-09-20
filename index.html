@@ -392,6 +392,28 @@
         margin-bottom: 0.5rem;
       }
 
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: -400px;
+        background: #10b981;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        transition: right 0.3s ease;
+        font-size: 0.875rem;
+      }
+
+      .notification.info {
+        background: #3b82f6;
+      }
+
+      .notification.show {
+        right: 20px;
+      }
+
       @media (max-width: 768px) {
         .card-header {
           flex-direction: column;
@@ -609,6 +631,31 @@
               const tab = e.target.getAttribute("data-tab");
               this.switchTab(tab);
             });
+          });
+
+          // Action buttons event delegation
+          this.setupActionButtonListeners();
+        }
+
+        setupActionButtonListeners() {
+          // Event delegation for action buttons
+          document.addEventListener("click", (e) => {
+            const registerBtn = e.target.closest(".register-btn");
+            const pendingBtn = e.target.closest(".pending-btn");
+
+            if (registerBtn) {
+              e.preventDefault();
+              const participantId = parseInt(
+                registerBtn.getAttribute("data-id")
+              );
+              this.markAsRegistered(participantId);
+            } else if (pendingBtn) {
+              e.preventDefault();
+              const participantId = parseInt(
+                pendingBtn.getAttribute("data-id")
+              );
+              this.moveBackToPending(participantId);
+            }
           });
         }
 
@@ -973,6 +1020,8 @@
               "Participant marked as registered successfully!",
               "success"
             );
+          } else {
+            this.showNotification("Participant not found!", "error");
           }
         }
 
@@ -993,40 +1042,74 @@
               "Participant moved back to pending successfully!",
               "info"
             );
+          } else {
+            this.showNotification("Participant not found!", "error");
           }
         }
 
         showNotification(message, type = "info") {
-          // Simple notification system
+          // Remove existing notifications
+          const existingNotifications =
+            document.querySelectorAll(".notification");
+          existingNotifications.forEach((notification) => {
+            notification.classList.remove("show");
+            setTimeout(() => {
+              notification.remove();
+            }, 300);
+          });
+
+          // Create new notification
           const notification = document.createElement("div");
-          notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: ${type === "success" ? "#10b981" : "#3b82f6"};
-                    color: white;
-                    padding: 1rem 1.5rem;
-                    border-radius: 0.5rem;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                    z-index: 1000;
-                    transform: translateX(400px);
-                    transition: transform 0.3s ease;
-                `;
+          notification.className = `notification ${type}`;
           notification.textContent = message;
           document.body.appendChild(notification);
 
           // Animate in
           setTimeout(() => {
-            notification.style.transform = "translateX(0)";
+            notification.classList.add("show");
           }, 100);
 
           // Remove after 3 seconds
           setTimeout(() => {
-            notification.style.transform = "translateX(400px)";
+            notification.classList.remove("show");
             setTimeout(() => {
-              document.body.removeChild(notification);
+              if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+              }
             }, 300);
           }, 3000);
+        }
+
+        loadSampleData() {
+          // Sample data for demonstration
+          this.participants = [
+            {
+              id: 1,
+              timestamp: "2024-01-15 10:30",
+              emailAddress: "john@example.com",
+              fullName: "John Doe",
+              contactNo: "+91 9876543210",
+              year: "3rd Year",
+              branch: "Computer Science",
+              college: "MIT College",
+              foodPreference: "Vegetarian",
+              paymentScreenshot: "Rs 499/-",
+              remarks: "Early bird registration",
+            },
+            {
+              id: 2,
+              timestamp: "2024-01-15 11:15",
+              emailAddress: "jane@example.com",
+              fullName: "Jane Smith",
+              contactNo: "+91 9876543211",
+              year: "2nd Year",
+              branch: "Electronics",
+              college: "VIT University",
+              foodPreference: "Non-Vegetarian",
+              paymentScreenshot: "Rs 499/-",
+              remarks: "",
+            },
+          ];
         }
 
         filterParticipants(list) {
@@ -1056,88 +1139,100 @@
           const nameMissing = !participant.fullName;
 
           return `
-                    <div class="participant-card">
-                        <div class="card-header">
-                            <div class="card-content">
-                                <h3 class="participant-name">${displayName}</h3>
-                                ${
-                                  nameMissing
-                                    ? '<p class="name-missing">(Name field missing from uploaded data)</p>'
-                                    : ""
-                                }
-                                <div class="details-grid">
-                                    <div class="detail-item">
-                                        <span class="detail-label">Email:</span> ${
-                                          participant.emailAddress || "N/A"
-                                        }
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="detail-label">Contact:</span> ${
-                                          participant.contactNo || "N/A"
-                                        }
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="detail-label">Year:</span> ${
-                                          participant.year || "N/A"
-                                        }
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="detail-label">Branch:</span> ${
-                                          participant.branch || "N/A"
-                                        }
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="detail-label">College:</span> ${
-                                          participant.college || "N/A"
-                                        }
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="detail-label">Food:</span> ${
-                                          participant.foodPreference || "N/A"
-                                        }
-                                    </div>
-                                </div>
-                                ${
-                                  participant.remarks
-                                    ? `
-                                    <div class="remarks">
-                                        <span class="label">Remarks:</span>
-                                        <span class="value">${participant.remarks}</span>
-                                    </div>
-                                `
-                                    : ""
-                                }
+            <div class="participant-card" data-participant-id="${
+              participant.id
+            }">
+                <div class="card-header">
+                    <div class="card-content">
+                        <h3 class="participant-name">${this.escapeHtml(
+                          displayName
+                        )}</h3>
+                        ${
+                          nameMissing
+                            ? '<p class="name-missing">(Name field missing from uploaded data)</p>'
+                            : ""
+                        }
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span> 
+                                ${this.escapeHtml(
+                                  participant.emailAddress || "N/A"
+                                )}
                             </div>
-                            <div class="card-actions">
-                                <div class="timestamp">${
-                                  participant.timestamp || "N/A"
-                                }</div>
-                                <div class="payment-badge">${
-                                  participant.paymentScreenshot || "Rs 499/-"
-                                }</div>
-                                ${
-                                  showRegisterButton
-                                    ? `
-                                    <button class="action-btn btn-register" onclick="adminPanel.markAsRegistered(${participant.id})">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        Mark Registered
-                                    </button>
-                                `
-                                    : `
-                                    <button class="action-btn btn-pending" onclick="adminPanel.moveBackToPending(${participant.id})">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M19 9l-7 7-7-7"/>
-                                        </svg>
-                                        Move to Pending
-                                    </button>
-                                `
-                                }
+                            <div class="detail-item">
+                                <span class="detail-label">Contact:</span> 
+                                ${this.escapeHtml(
+                                  participant.contactNo || "N/A"
+                                )}
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Year:</span> 
+                                ${this.escapeHtml(participant.year || "N/A")}
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Branch:</span> 
+                                ${this.escapeHtml(participant.branch || "N/A")}
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">College:</span> 
+                                ${this.escapeHtml(participant.college || "N/A")}
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Food:</span> 
+                                ${this.escapeHtml(
+                                  participant.foodPreference || "N/A"
+                                )}
                             </div>
                         </div>
+                        ${
+                          participant.remarks
+                            ? `
+                            <div class="remarks">
+                                <span class="label">Remarks:</span>
+                                <span class="value">${this.escapeHtml(
+                                  participant.remarks
+                                )}</span>
+                            </div>
+                        `
+                            : ""
+                        }
                     </div>
-                `;
+                    <div class="card-actions">
+                        <div class="timestamp">${this.escapeHtml(
+                          participant.timestamp || "N/A"
+                        )}</div>
+                        <div class="payment-badge">${this.escapeHtml(
+                          participant.paymentScreenshot || "Rs 499/-"
+                        )}</div>
+                        ${
+                          showRegisterButton
+                            ? `
+                            <button class="action-btn btn-register register-btn" data-action="register" data-id="${participant.id}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Mark Registered
+                            </button>
+                        `
+                            : `
+                            <button class="action-btn btn-pending pending-btn" data-action="pending" data-id="${participant.id}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19 9l-7 7-7-7"/>
+                                </svg>
+                                Move to Pending
+                            </button>
+                        `
+                        }
+                    </div>
+                </div>
+            </div>
+          `;
+        }
+
+        escapeHtml(text) {
+          const div = document.createElement("div");
+          div.textContent = text;
+          return div.innerHTML;
         }
 
         switchTab(tab) {
